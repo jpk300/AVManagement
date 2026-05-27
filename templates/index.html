@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Room Validation</h2>
+  <form method="get" class="inline-form">
+    <label for="room_id">Select Room</label>
+    <select id="room_id" name="room_id" onchange="this.form.submit()">
+      {% for room in rooms %}
+        <option value="{{ room.id }}" {% if selected_room and room.id == selected_room.id %}selected{% endif %}>{{ room.room_number }} - {{ room.room_name }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if room_payload %}
+  <p><strong>Last validation:</strong> {{ room_payload.last_validation or 'Never' }}</p>
+  <form method="post" action="{{ url_for('save_validation', room_id=room_payload.id) }}">
+    <button type="button" onclick="markAllFunctional()">Mark Entire Room Functional</button>
+    <table>
+      <thead><tr><th>Device</th><th>Type</th><th>Asset/Serial</th><th>Status</th><th>Issue Notes</th></tr></thead>
+      <tbody>
+      {% for device in room_payload.devices %}
+        <tr>
+          <td>{{ device.device_name }}</td>
+          <td>{{ device.device_type }}</td>
+          <td>{{ device.asset_tag or '-' }} / {{ device.serial_number or '-' }}</td>
+          <td>
+            <select name="status_{{ device.id }}" class="status-select" onchange="toggleNotes(this, {{ device.id }})">
+              <option value="Functional" {% if device.status == 'Functional' %}selected{% endif %}>Functional</option>
+              <option value="Not Functional" {% if device.status == 'Not Functional' %}selected{% endif %}>Not Functional</option>
+            </select>
+          </td>
+          <td><input type="text" id="notes_{{ device.id }}" name="notes_{{ device.id }}" value="{{ device.issue_notes or '' }}" placeholder="Required when Not Functional"></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit">Save Validation</button>
+  </form>
+  {% endif %}
+</section>
+<script>
+function toggleNotes(select, id) {
+  const notes = document.getElementById(`notes_${id}`);
+  notes.required = (select.value === 'Not Functional');
+}
+function markAllFunctional() {
+  document.querySelectorAll('.status-select').forEach((sel) => {
+    sel.value = 'Functional';
+    const id = sel.name.replace('status_', '');
+    toggleNotes(sel, id);
+  });
+}
+document.querySelectorAll('.status-select').forEach((sel) => {
+  const id = sel.name.replace('status_', '');
+  toggleNotes(sel, id);
+});
+</script>
+{% endblock %}

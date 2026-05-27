@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Room Settings</h2>
+  <form method="get" class="inline-form"><input name="q" value="{{ q }}" placeholder="Search rooms"><button>Search</button></form>
+  <h3>Add Room</h3>
+  <form method="post" class="grid-form">
+    <input type="hidden" name="action" value="add_room">
+    <input name="room_number" placeholder="Room Number" required>
+    <input name="room_name" placeholder="Room Name" required>
+    <input name="building" placeholder="Building">
+    <input name="floor" placeholder="Floor">
+    <button>Add Room</button>
+  </form>
+  <table><thead><tr><th>Room</th><th>Building</th><th>Floor</th><th>Actions</th></tr></thead><tbody>
+    {% for room in rooms %}
+    <tr>
+      <form method="post">
+      <input type="hidden" name="action" value="edit_room"><input type="hidden" name="room_id" value="{{ room.id }}">
+      <td><input name="room_number" value="{{ room.room_number }}"> <input name="room_name" value="{{ room.room_name }}"></td>
+      <td><input name="building" value="{{ room.building or '' }}"></td>
+      <td><input name="floor" value="{{ room.floor or '' }}"></td>
+      <td><button>Save</button></form>
+      <form method="post" style="display:inline"><input type="hidden" name="action" value="delete_room"><input type="hidden" name="room_id" value="{{ room.id }}"><button onclick="return confirm('Delete room?')">Delete</button></form></td>
+    </tr>
+    {% endfor %}
+  </tbody></table>
+</section>
+<section class="card">
+  <h2>Device Inventory</h2>
+  <h3>Add Device</h3>
+  <form method="post" class="grid-form">
+    <input type="hidden" name="action" value="add_device">
+    <select name="room_id" required>{% for room in rooms %}<option value="{{ room.id }}">{{ room.room_number }} - {{ room.room_name }}</option>{% endfor %}</select>
+    <input name="device_name" placeholder="Device Name" required>
+    <input name="device_type" placeholder="Device Type" required>
+    <input name="asset_tag" placeholder="Asset Tag">
+    <input name="serial_number" placeholder="Serial Number">
+    <input name="notes" placeholder="Notes">
+    <button>Add Device</button>
+  </form>
+  <table><thead><tr><th>Room</th><th>Device</th><th>Details</th><th>Actions</th></tr></thead><tbody>
+    {% for d in devices %}
+    <tr><form method="post">
+      <input type="hidden" name="action" value="edit_device"><input type="hidden" name="device_id" value="{{ d.id }}">
+      <td><select name="room_id">{% for room in rooms %}<option value="{{ room.id }}" {% if room.id==d.room_id %}selected{% endif %}>{{ room.room_number }}</option>{% endfor %}</select></td>
+      <td><input name="device_name" value="{{ d.device_name }}"><input name="device_type" value="{{ d.device_type }}"></td>
+      <td><input name="asset_tag" value="{{ d.asset_tag or '' }}"><input name="serial_number" value="{{ d.serial_number or '' }}"><input name="notes" value="{{ d.notes or '' }}"></td>
+      <td><button>Save</button></form><form method="post" style="display:inline"><input type="hidden" name="action" value="delete_device"><input type="hidden" name="device_id" value="{{ d.id }}"><button onclick="return confirm('Delete device?')">Delete</button></form></td>
+    </tr>
+    {% endfor %}
+  </tbody></table>
+</section>
+{% endblock %}

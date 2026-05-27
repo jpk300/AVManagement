@@ -1,0 +1,12 @@
+services:
+  av-room-inventory-tracker:
+    build: .
+    container_name: av-room-inventory-tracker
+    ports:
+      - "5000:5000"
+    volumes:
+      - av_inventory_data:/data
+    restart: unless-stopped
+
+volumes:
+  av_inventory_data:
