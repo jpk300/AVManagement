@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="grid4">
+  <div class="card stat"><h3>Total Rooms</h3><p>{{ summary.total_rooms }}</p></div>
+  <div class="card stat"><h3>Fully Functional</h3><p>{{ summary.fully_count }}</p></div>
+  <div class="card stat"><h3>Rooms With Issues</h3><p>{{ summary.rooms_with_issues }}</p></div>
+  <div class="card stat"><h3>Devices With Issues</h3><p>{{ summary.devices_with_issues }}</p></div>
+</section>
+<section class="card">
+  <h2>Fully Functional Rooms</h2>
+  <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
+    {% for room in fully_functional %}
+      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
+    {% else %}<tr><td colspan="3">No fully functional rooms yet.</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+<section class="card">
+  <h2>Rooms With Issues</h2>
+  <a href="{{ url_for('report_csv') }}">Export Issues CSV</a>
+  <table><thead><tr><th>Room</th><th>Device</th><th>Status</th><th>Notes</th><th>Last Validation</th></tr></thead><tbody>
+    {% for item in with_issues %}
+      {% for d in item.issues %}
+      <tr><td>{{ item.room.display_name }}</td><td>{{ d.device_name }} ({{ d.device_type }})</td><td>{{ d.status }}</td><td>{{ d.issue_notes or '-' }}</td><td>{{ item.room.last_validation or 'Never' }}</td></tr>
+      {% endfor %}
+    {% else %}<tr><td colspan="5">No room issues found.</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+{% endblock %}
