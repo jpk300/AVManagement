@@ -1,11 +1,31 @@
 {% extends 'base.html' %}
 {% block content %}
+<section class="card">
+  <h2>Report Filters</h2>
+  <form method="get" action="{{ url_for('report') }}" class="inline-form">
+    <label for="date">Report Date</label>
+    <input type="date" id="date" name="date" value="{{ selected_date }}">
+    <button type="submit">Apply</button>
+    <a href="{{ url_for('report') }}">Clear</a>
+  </form>
+</section>
+
 <section class="grid4">
   <div class="card stat"><h3>Total Rooms</h3><p>{{ summary.total_rooms }}</p></div>
   <div class="card stat"><h3>Fully Functional</h3><p>{{ summary.fully_count }}</p></div>
   <div class="card stat"><h3>Rooms With Issues</h3><p>{{ summary.rooms_with_issues }}</p></div>
-  <div class="card stat"><h3>Devices With Issues</h3><p>{{ summary.devices_with_issues }}</p></div>
+  <div class="card stat"><h3>Not Checked</h3><p>{{ summary.unchecked_rooms }}</p></div>
 </section>
+
+<section class="card">
+  <h2>Rooms Not Checked{% if selected_date %} ({{ selected_date }}){% endif %}</h2>
+  <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
+    {% for room in unchecked_rooms %}
+      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
+    {% else %}<tr><td colspan="3">All rooms were checked for this date.</td></tr>{% endfor %}
+  </tbody></table>
+</section>
+
 <section class="card">
   <h2>Fully Functional Rooms</h2>
   <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
@@ -16,7 +36,7 @@
 </section>
 <section class="card">
   <h2>Rooms With Issues</h2>
-  <a href="{{ url_for('report_csv') }}">Export Issues CSV</a>
+  <a href="{{ url_for('report_csv', date=selected_date) }}">Export Issues CSV</a>
   <table><thead><tr><th>Room</th><th>Device</th><th>Status</th><th>Notes</th><th>Last Validation</th></tr></thead><tbody>
     {% for item in with_issues %}
       {% for d in item.issues %}

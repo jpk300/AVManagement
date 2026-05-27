@@ -78,14 +78,30 @@ def save_validation(room_id):
 
 @app.route('/report')
 def report():
-    rooms = Room.query.filter_by(active=True).all()
+    date_param = request.args.get('date', '').strip()
+    selected_date = None
+    if date_param:
+        try:
+            selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD.', 'error')
+            return redirect(url_for('report'))
+
+    rooms = Room.query.filter_by(active=True).order_by(Room.room_number).all()
     fully_functional = []
     with_issues = []
+    unchecked_rooms = []
 
     for room in rooms:
-        payload = _room_with_latest_status(room)
+        payload = _room_with_latest_status(room, selected_date=selected_date)
         if not payload['devices']:
             continue
+
+        checked_devices = [d for d in payload['devices'] if d['validated_at']]
+        if len(checked_devices) < len(payload['devices']):
+            unchecked_rooms.append(payload)
+            continue
+
         issues = [d for d in payload['devices'] if d['status'] == 'Not Functional']
         if issues:
             with_issues.append({'room': payload, 'issues': issues})
@@ -95,16 +111,20 @@ def report():
     total_rooms = len(rooms)
     rooms_with_issues_count = len(with_issues)
     fully_count = len(fully_functional)
+    unchecked_count = len(unchecked_rooms)
     devices_with_issues = sum(len(item['issues']) for item in with_issues)
 
     return render_template(
         'report.html',
         fully_functional=fully_functional,
         with_issues=with_issues,
+        unchecked_rooms=unchecked_rooms,
+        selected_date=(selected_date.isoformat() if selected_date else ''),
         summary={
             'total_rooms': total_rooms,
             'fully_count': fully_count,
             'rooms_with_issues': rooms_with_issues_count,
+            'unchecked_rooms': unchecked_count,
             'devices_with_issues': devices_with_issues,
         },
     )
@@ -113,9 +133,17 @@ def report():
 @app.route('/report.csv')
 def report_csv():
     rows = []
+    date_param = request.args.get('date', '').strip()
+    selected_date = None
+    if date_param:
+        try:
+            selected_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = None
+
     rooms = Room.query.filter_by(active=True).all()
     for room in rooms:
-        payload = _room_with_latest_status(room)
+        payload = _room_with_latest_status(room, selected_date=selected_date)
         for device in payload['devices']:
             if device['status'] == 'Not Functional':
                 rows.append([
@@ -209,11 +237,15 @@ def room_devices(room_id):
     return jsonify(_room_with_latest_status(room))
 
 
-def _room_with_latest_status(room):
+def _room_with_latest_status(room, selected_date=None):
     devices_payload = []
     last_validations = []
     for device in room.devices:
-        latest_status = DeviceStatus.query.filter_by(device_id=device.id).order_by(DeviceStatus.validated_at.desc()).first()
+        status_query = DeviceStatus.query.filter_by(device_id=device.id)
+        if selected_date:
+            status_query = status_query.filter(db.func.date(DeviceStatus.validated_at) == selected_date)
+
+        latest_status = status_query.order_by(DeviceStatus.validated_at.desc()).first()
         status = latest_status.status if latest_status else 'Functional'
         issue_notes = latest_status.issue_notes if latest_status else ''
         validated_at = latest_status.validated_at if latest_status else None
