@@ -1,51 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="card">
-  <h2>Daily Status Report</h2>
-  <form method="get" class="inline-form">
-    <label for="date">Report Date</label>
-    <input type="date" id="date" name="date" value="{{ selected_date }}">
-    <button type="submit">Load Date</button>
-  </form>
-</section>
-
 <section class="grid4">
   <div class="card stat"><h3>Total Rooms</h3><p>{{ summary.total_rooms }}</p></div>
   <div class="card stat"><h3>Fully Functional</h3><p>{{ summary.fully_count }}</p></div>
   <div class="card stat"><h3>Rooms With Issues</h3><p>{{ summary.rooms_with_issues }}</p></div>
-  <div class="card stat"><h3>Not Checked</h3><p>{{ summary.not_checked }}</p></div>
+  <div class="card stat"><h3>Devices With Issues</h3><p>{{ summary.devices_with_issues }}</p></div>
 </section>
-
 <section class="card">
   <h2>Fully Functional Rooms</h2>
-  <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Report Date</th></tr></thead><tbody>
+  <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
     {% for room in fully_functional %}
-      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ selected_date }}</td></tr>
-    {% else %}<tr><td colspan="3">No fully functional rooms for this date.</td></tr>{% endfor %}
+      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
+    {% else %}<tr><td colspan="3">No fully functional rooms yet.</td></tr>{% endfor %}
   </tbody></table>
 </section>
-
 <section class="card">
   <h2>Rooms With Issues</h2>
-  <a href="{{ url_for('report_csv') }}">Export Issues CSV (latest)</a>
-  <table><thead><tr><th>Room</th><th>Device</th><th>Status</th><th>Notes</th><th>Report Date</th></tr></thead><tbody>
+  <a href="{{ url_for('report_csv') }}">Export Issues CSV</a>
+  <table><thead><tr><th>Room</th><th>Device</th><th>Status</th><th>Notes</th><th>Last Validation</th></tr></thead><tbody>
     {% for item in with_issues %}
       {% for d in item.issues %}
-      <tr><td>{{ item.room.display_name }}</td><td>{{ d.device_name }} ({{ d.device_type }})</td><td>{{ d.status }}</td><td>{{ d.issue_notes or '-' }}</td><td>{{ selected_date }}</td></tr>
+      <tr><td>{{ item.room.display_name }}</td><td>{{ d.device_name }} ({{ d.device_type }})</td><td>{{ d.status }}</td><td>{{ d.issue_notes or '-' }}</td><td>{{ item.room.last_validation or 'Never' }}</td></tr>
       {% endfor %}
-    {% else %}<tr><td colspan="5">No room issues found for this date.</td></tr>{% endfor %}
-  </tbody></table>
-</section>
-
-<section class="card">
-  <h2>Rooms Not Checked</h2>
-  <p>Rooms listed here were either not checked at all or partially checked on {{ selected_date }}.</p>
-  <table><thead><tr><th>Room</th><th>Checked Devices</th><th>Total Devices</th><th>Status</th></tr></thead><tbody>
-    {% for room in not_checked %}
-      {% set checked = room.devices | selectattr('status', 'ne', 'Not Checked') | list | length %}
-      {% set total = room.devices | length %}
-      <tr><td>{{ room.display_name }}</td><td>{{ checked }}</td><td>{{ total }}</td><td>{% if checked == 0 %}Not Checked{% else %}Partially Checked{% endif %}</td></tr>
-    {% else %}<tr><td colspan="4">All rooms were fully checked for this date.</td></tr>{% endfor %}
+    {% else %}<tr><td colspan="5">No room issues found.</td></tr>{% endfor %}
   </tbody></table>
 </section>
 {% endblock %}

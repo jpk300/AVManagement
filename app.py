@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 import csv
 import io
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, send_file
@@ -79,50 +79,32 @@ def save_validation(room_id):
 @app.route('/report')
 def report():
     rooms = Room.query.filter_by(active=True).all()
-    selected_date_str = request.args.get('date')
-    try:
-        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date() if selected_date_str else datetime.utcnow().date()
-    except ValueError:
-        selected_date = datetime.utcnow().date()
-    selected_date_str = selected_date.strftime('%Y-%m-%d')
-
     fully_functional = []
     with_issues = []
-    not_checked = []
 
     for room in rooms:
-        payload = _room_with_status_for_date(room, selected_date)
+        payload = _room_with_latest_status(room)
         if not payload['devices']:
             continue
-        if not payload['checked_any']:
-            not_checked.append(payload)
-            continue
-
         issues = [d for d in payload['devices'] if d['status'] == 'Not Functional']
         if issues:
             with_issues.append({'room': payload, 'issues': issues})
-        elif payload['checked_all']:
-            fully_functional.append(payload)
         else:
-            not_checked.append(payload)
+            fully_functional.append(payload)
 
     total_rooms = len(rooms)
     rooms_with_issues_count = len(with_issues)
     fully_count = len(fully_functional)
-    not_checked_count = len(not_checked)
     devices_with_issues = sum(len(item['issues']) for item in with_issues)
 
     return render_template(
         'report.html',
         fully_functional=fully_functional,
         with_issues=with_issues,
-        not_checked=not_checked,
-        selected_date=selected_date_str,
         summary={
             'total_rooms': total_rooms,
             'fully_count': fully_count,
             'rooms_with_issues': rooms_with_issues_count,
-            'not_checked': not_checked_count,
             'devices_with_issues': devices_with_issues,
         },
     )
@@ -225,58 +207,6 @@ def admin():
 def room_devices(room_id):
     room = Room.query.get_or_404(room_id)
     return jsonify(_room_with_latest_status(room))
-
-
-def _room_with_status_for_date(room, selected_date):
-    day_start = datetime.combine(selected_date, time.min)
-    day_end = datetime.combine(selected_date, time.max)
-
-    devices_payload = []
-    checked_count = 0
-
-    for device in room.devices:
-        status_for_day = DeviceStatus.query.filter(
-            DeviceStatus.device_id == device.id,
-            DeviceStatus.validated_at >= day_start,
-            DeviceStatus.validated_at <= day_end,
-        ).order_by(DeviceStatus.validated_at.desc()).first()
-
-        if status_for_day:
-            checked_count += 1
-            status = status_for_day.status
-            issue_notes = status_for_day.issue_notes
-            validated_at = status_for_day.validated_at
-        else:
-            status = 'Not Checked'
-            issue_notes = ''
-            validated_at = None
-
-        devices_payload.append({
-            'id': device.id,
-            'device_name': device.device_name,
-            'device_type': device.device_type,
-            'asset_tag': device.asset_tag,
-            'serial_number': device.serial_number,
-            'status': status,
-            'issue_notes': issue_notes,
-            'validated_at': validated_at.strftime('%Y-%m-%d %H:%M') if validated_at else None,
-        })
-
-    checked_any = checked_count > 0
-    checked_all = checked_count == len(room.devices) if room.devices else False
-
-    return {
-        'id': room.id,
-        'room_number': room.room_number,
-        'room_name': room.room_name,
-        'building': room.building,
-        'floor': room.floor,
-        'display_name': f"{room.room_number} - {room.room_name}",
-        'last_validation': selected_date.strftime('%Y-%m-%d'),
-        'checked_any': checked_any,
-        'checked_all': checked_all,
-        'devices': devices_payload,
-    }
 
 
 def _room_with_latest_status(room):
