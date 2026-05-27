@@ -100,3 +100,20 @@ button:hover { background: #153f75; }
   nav { width: 100%; overflow-x: auto; }
   main { padding: 16px; }
 }
+
+.room-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.icon-good { background: #2f9e44; }
+.icon-issue { background: #d63333; }
+.icon-warning { background: #d39b00; color: #1e2a3b; }
