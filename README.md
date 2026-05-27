@@ -5,8 +5,8 @@ A lightweight Flask + SQLite web app for AV/IT staff to validate classroom AV de
 ## Features
 - Room validation workflow (pick room, mark status, add issue notes, save)
 - Last validation timestamp per room
-- Reports for fully functional rooms and rooms with issues
-- CSV export for issue report
+- Date-based daily reports for fully functional rooms, rooms with issues, and rooms not checked
+- CSV export for issue report (latest snapshot report endpoint)
 - Admin settings for rooms and devices (add/edit/delete)
 - Room search in admin page
 - One-click "Mark Entire Room Functional"
