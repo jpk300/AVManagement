@@ -4,11 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AV Room Inventory Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<header>
-  <h1>AV Room Inventory Tracker</h1>
+<header class="site-header">
+  <div class="brand-wrap">
+    <p class="eyebrow">Academic Technology</p>
+    <h1>AV Room Inventory Tracker</h1>
+  </div>
   <nav>
     <a href="{{ url_for('index') }}">Room Validation</a>
     <a href="{{ url_for('report') }}">Reports</a>

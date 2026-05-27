@@ -21,7 +21,7 @@
   <h2>Rooms Not Checked{% if selected_date %} ({{ selected_date }}){% endif %}</h2>
   <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
     {% for room in unchecked_rooms %}
-      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
+      <tr><td><span class="room-status-icon icon-warning" aria-hidden="true">!</span>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
     {% else %}<tr><td colspan="3">All rooms were checked for this date.</td></tr>{% endfor %}
   </tbody></table>
 </section>
@@ -30,7 +30,7 @@
   <h2>Fully Functional Rooms</h2>
   <table><thead><tr><th>Room</th><th>Building/Floor</th><th>Last Validation</th></tr></thead><tbody>
     {% for room in fully_functional %}
-      <tr><td>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
+      <tr><td><span class="room-status-icon icon-good" aria-hidden="true">✓</span>{{ room.display_name }}</td><td>{{ room.building or '-' }}/{{ room.floor or '-' }}</td><td>{{ room.last_validation or 'Never' }}</td></tr>
     {% else %}<tr><td colspan="3">No fully functional rooms yet.</td></tr>{% endfor %}
   </tbody></table>
 </section>
@@ -40,7 +40,7 @@
   <table><thead><tr><th>Room</th><th>Device</th><th>Status</th><th>Notes</th><th>Last Validation</th></tr></thead><tbody>
     {% for item in with_issues %}
       {% for d in item.issues %}
-      <tr><td>{{ item.room.display_name }}</td><td>{{ d.device_name }} ({{ d.device_type }})</td><td>{{ d.status }}</td><td>{{ d.issue_notes or '-' }}</td><td>{{ item.room.last_validation or 'Never' }}</td></tr>
+      <tr><td><span class="room-status-icon icon-issue" aria-hidden="true">✕</span>{{ item.room.display_name }}</td><td>{{ d.device_name }} ({{ d.device_type }})</td><td>{{ d.status }}</td><td>{{ d.issue_notes or '-' }}</td><td>{{ item.room.last_validation or 'Never' }}</td></tr>
       {% endfor %}
     {% else %}<tr><td colspan="5">No room issues found.</td></tr>{% endfor %}
   </tbody></table>
